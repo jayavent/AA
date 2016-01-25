@@ -1,6 +1,6 @@
 <#
     .DESCRIPTION
-    A PowerShell Workflow that creates a new Azure Resource Manager VM, NIC and Storage Account and joins it to a subnet according to supplied parameters.
+    A PowerShell runbook that creates a new Azure Resource Manager VM, NIC and Storage Account and joins it to a subnet according to supplied parameters.
     Parameters: VM Name, VM Size, Resource Group Name, Subnet, Local Admin Username, Local Admin Password
     VM is provisioned with a DHCP IP Address, Storage Account named VM Name + Date (yyyymmdd) to make it unique.
 
@@ -11,26 +11,13 @@
 
 
 Param(
-[Parameter(Mandatory=$true)]
-[String]
-$VMName,
-[Parameter(Mandatory=$true)]
-[String]
-$VMSize,
-[Parameter(Mandatory=$true)]
-[String]
-$ResourceGroup,
-[Parameter(Mandatory=$true)]
-[String]
-$Subnet,
-[Parameter(Mandatory=$true)]
-[String]
-$Username,
-[Parameter(Mandatory=$true)]
-[String]
-$Password
+[String]$VMName,
+[String]$VMSize,
+[String]$ResourceGroup,
+[String]$Subnet,
+[String]$Username,
+[String]$Password
 )
-
 
 #The name of the Automation Credential Asset this runbook will use to authenticate to Azure.
 $CredentialAssetName = "AutomationAcc";
