@@ -18,6 +18,7 @@ Param(
 [String]$Username,
 [String]$Password
 )
+Import-Module AzureRM
 
 #The name of the Automation Credential Asset this runbook will use to authenticate to Azure.
 $CredentialAssetName = "AutomationAcc";
