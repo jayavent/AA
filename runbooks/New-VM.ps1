@@ -1,27 +1,17 @@
-<#
-    .DESCRIPTION
-    A PowerShell runbook that creates a new Azure Resource Manager VM, NIC and Storage Account and joins it to a subnet according to supplied parameters.
-    Parameters: VM Name, VM Size, Resource Group Name, Subnet, Local Admin Username, Local Admin Password
-    VM is provisioned with a DHCP IP Address, Storage Account named VM Name + Date (yyyymmdd) to make it unique.
-
-    .NOTES
-        AUTHOR: Jay Avent (jay.avent@inframon.com)
-        LASTEDIT: Jan 25, 2016
-#>
-
-
 Param(
 [String]$VMName,
 [String]$VMSize,
 [String]$ResourceGroup,
+[String]$vNetwork,
 [String]$Subnet,
 [String]$Username,
 [String]$Password
 )
+
 Import-Module AzureRM
 
 #The name of the Automation Credential Asset this runbook will use to authenticate to Azure.
-$CredentialAssetName = "AutomationAcc";
+$CredentialAssetName = "AutomationAcc"
 	
 #Get the credential with the above name from the Automation Asset store
 $Cred = Get-AutomationPSCredential -Name $CredentialAssetName;
@@ -38,13 +28,13 @@ $VMCred = new-object System.Management.Automation.PSCredential ("$Username", $VM
 
 #Store variables for use later
 $rg = Get-AzureRMResourceGroup -Name $ResourceGroup
-$vnet = Get-AzureRmVirtualNetwork -ResourceGroupName $ResourceGroup
+$vnet = Get-AzureRmVirtualNetwork -ResourceGroupName $ResourceGroup -Name $vNetwork
 $Network = Get-AzureRmVirtualNetworkSubnetConfig -VirtualNetwork $vnet -Name $Subnet
 $TodaysDate = Get-Date -Format yyyymmdd
 $StorAccName = $VMName.toLower() + $TodaysDate
 
 #Create VM NIC
-$VMNic = New-AzureRmNetworkInterface -Name $VMName -ResourceGroupName $ResourceGroup -Location $rg.Location -SubnetId $Sub.Id
+$VMNic = New-AzureRmNetworkInterface -Name $VMName -ResourceGroupName $ResourceGroup -Location $rg.Location -SubnetId $Network.Id
 
 #Create Storage Account
 $VMStor = New-AzureRmStorageAccount -Name $StorAccName -Type Standard_LRS -ResourceGroupName $ResourceGroup -Location $rg.Location
