@@ -41,27 +41,27 @@ workflow New-ARMVM
     $VMCred = new-object System.Management.Automation.PSCredential ("$Username", $VMAdminPassword)	
 
     #Store variables for use later
-    $rg = Get-AzureRMResourceGroup -Name $ResourceGroup
-    $vNet = Get-AzureRmVirtualNetwork -ResourceGroupName $ResourceGroup
-    $Sub = Get-AzureRmVirtualNetworkSubnetConfig -VirtualNetwork $vnet -Name $Subnet
-    $Date = Get-Date -Format yyyymmdd
+    $rg = InlineScript {Get-AzureRMResourceGroup -Name $ResourceGroup}
+    $vNet = InlineScript {Get-AzureRmVirtualNetwork -ResourceGroupName $ResourceGroup}
+    $Sub = InlineScript {Get-AzureRmVirtualNetworkSubnetConfig -VirtualNetwork $vnet -Name $Subnet}
+    $Date = InlineScript {Get-Date -Format yyyymmdd}
     $StorAccName = $VMName.toLower() + $Date
 
     #Create VM NIC
-    $VMNic = New-AzureRmNetworkInterface -Name $VMName -ResourceGroupName $ResourceGroup -Location $rg.Location -SubnetId $Sub.Id
+    $VMNic = InlineScript {New-AzureRmNetworkInterface -Name $VMName -ResourceGroupName $ResourceGroup -Location $rg.Location -SubnetId $Sub.Id}
 
     #Create Storage Account
-    $VMStor = New-AzureRmStorageAccount -Name $StorAccName -Type Standard_LRS -ResourceGroupName $ResourceGroup -Location $rg.Location
+    $VMStor = InlineScript {New-AzureRmStorageAccount -Name $StorAccName -Type Standard_LRS -ResourceGroupName $ResourceGroup -Location $rg.Location}
     
     #Create VM Configuration
-	$vm = New-AzureRmVMConfig -VMName $VMName -VMSize $VMSize
-    $vm = Set-AzureRmVMOperatingSystem -VM $vm -Windows -ComputerName $VMName -Credential $VMCred -ProvisionVMAgent -EnableAutoUpdate
-    $vm = Set-AzureRmVMSourceImage -VM $vm -PublisherName "MicrosoftWindowsServer" -Offer "WindowsServer" -Skus "2012-R2-Datacenter" -Version "latest"
-    $vm = Add-AzureRmVMNetworkInterface -VM $vm -Id $VMNic.Id
+	$vm = InlineScript {New-AzureRmVMConfig -VMName $VMName -VMSize $VMSize}
+    $vm = InlineScript {Set-AzureRmVMOperatingSystem -VM $vm -Windows -ComputerName $VMName -Credential $VMCred -ProvisionVMAgent -EnableAutoUpdate}
+    $vm = InlineScript {Set-AzureRmVMSourceImage -VM $vm -PublisherName "MicrosoftWindowsServer" -Offer "WindowsServer" -Skus "2012-R2-Datacenter" -Version "latest"}
+    $vm = InlineScript {Add-AzureRmVMNetworkInterface -VM $vm -Id $VMNic.Id}
     $VMDiskUri = $VMStor.PrimaryEndpoints.Blob.ToString() + "vhds/" + $VMName + "-OS-Disk"  + ".vhd"
-    $vm = Set-AzureRmVMOSDisk -VM $vm -Name OSDisk -VhdUri $VMDiskUri -CreateOption fromImage
-    $vm = Set-AzureRmVMBootDiagnostics -StorageAccountName $VMStor.StorageAccountName -VM $vm -ResourceGroupName $ResourceGroup -Enable
+    $vm = InlineScript {Set-AzureRmVMOSDisk -VM $vm -Name OSDisk -VhdUri $VMDiskUri -CreateOption fromImage}
+    $vm = InlineScript {Set-AzureRmVMBootDiagnostics -StorageAccountName $VMStor.StorageAccountName -VM $vm -ResourceGroupName $ResourceGroup -Enable}
 
     #Create VM
-    New-AzureRmVM -ResourceGroupName $ResourceGroup -Location $rg.Location -VM $vm
+    InlineScript {New-AzureRmVM -ResourceGroupName $ResourceGroup -Location $rg.Location -VM $vm}
 }
